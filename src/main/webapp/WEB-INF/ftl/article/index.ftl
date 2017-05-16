@@ -11,15 +11,26 @@
         <link href="${basePath}/css/common/bootstrap-datetimepicker.min.css" rel="stylesheet"/>
         <link href="${basePath}/css/common/bootstrap-select.css" rel="stylesheet"/>
 		<script  src="http://open.sojson.com/common/jquery/jquery1.8.3.min.js"></script>
+        <link href="${basePath}/css/common/markdowneditormd.css" rel="stylesheet"/>
 		<script  src="${basePath}/js/common/layer/layer.js"></script>
 		<script  src="${basePath}/js/common/bootstrap/3.3.5/js/bootstrap.min.js"></script>
         <script  src="${basePath}/js/common/bootstrap/bootstrap-select.js"></script>
 		<script  src="${basePath}/js/shiro.demo.js"></script>
+        <script  src="${basePath}/js/common/editormd/editormd.min.js"></script>
         <#--<script type="text/javascript" src="${basePath}/js/common/bootstrap/locales/bootstrap-datetimepicker.de.js" charset="UTF-8"></script>-->
         <script type="text/javascript" src="${basePath}/js/common/bootstrap/bootstrap-datetimepicker.js" charset="UTF-8"></script>
         <script type="text/javascript" src="${basePath}/js/common/bootstrap/locales/bootstrap-datetimepicker.fr.js" charset="UTF-8"></script>
 		<script >
 			so.init(function(){
+
+                //markdown 文本初始化
+                testEditor = editormd("test-editormd", {
+                    width   : "90%",
+                    height  : 320,
+                    syncScrolling : "single",
+                    path    : "${basePath}/js/common/editormd/lib/"
+                });
+
 				//初始化全选。
 				so.checkBoxInit('#checkAll','[check=box]');
 				<@shiro.hasPermission name="/article/deleteArticleById.shtml">
@@ -189,7 +200,10 @@
                                     </div>
                                     <input type="hidden" id="dtp_input1" value="" /><br/>
                                 </div>
-
+                                <div id="layout" class="form-group">
+                                    <label for="recipient-name" class="control-label">发表日期:</label>
+                                    <div id="test-editormd"></div>
+                                </div>
 
                             </form>
                         </div>
