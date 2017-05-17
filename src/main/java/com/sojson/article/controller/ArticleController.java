@@ -3,6 +3,7 @@ package com.sojson.article.controller;
 import com.sojson.article.entiy.Article;
 import com.sojson.article.service.ArticleService;
 import com.sojson.common.controller.BaseController;
+import com.sojson.common.utils.Tooltip;
 import com.sojson.core.mybatis.page.Pagination;
 import org.apache.commons.collections.map.HashedMap;
 import org.springframework.context.annotation.Scope;
@@ -48,9 +49,18 @@ public class ArticleController extends BaseController {
 		return article;
 	}
 
-	@RequestMapping(value = "/test")
+	/**
+	 * 文章添加管理
+	 * @return
+	 */
+	@RequestMapping(value = "/saveOrUpdateArticle")
 	@ResponseBody
-	public String test(){
-		return "success";
+	public Tooltip saveArticle(Article article){
+		if(null!=article.getId()){
+			articleService.updateByPrimaryKey(article);
+		}else{
+			articleService.insert(article);
+		}
+		return Tooltip.succ("操作成功");
 	}
 }

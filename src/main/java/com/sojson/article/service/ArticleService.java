@@ -14,6 +14,10 @@ import com.sojson.permission.bo.UserRoleAllocationBo;
 
 public interface ArticleService {
 
+    int insert(Article article);
+
+    int updateByPrimaryKey(Article article);
+
     Pagination<Article> findByPage(Map<String, Object> resultMap, Integer pageNo,
                                    Integer pageSize);
 

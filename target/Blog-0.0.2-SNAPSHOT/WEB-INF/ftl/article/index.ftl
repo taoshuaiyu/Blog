@@ -15,38 +15,44 @@
 		<script  src="${basePath}/js/common/layer/layer.js"></script>
 		<script  src="${basePath}/js/common/bootstrap/3.3.5/js/bootstrap.min.js"></script>
         <script  src="${basePath}/js/common/bootstrap/bootstrap-select.js"></script>
-		<script  src="${basePath}/js/shiro.demo.js"></script>
+		<script  src="${basePath}/js/common/shiro.demo.js"></script>
         <script  src="${basePath}/js/common/editormd/editormd.min.js"></script>
         <#--<script type="text/javascript" src="${basePath}/js/common/bootstrap/locales/bootstrap-datetimepicker.de.js" charset="UTF-8"></script>-->
         <script type="text/javascript" src="${basePath}/js/common/bootstrap/bootstrap-datetimepicker.js" charset="UTF-8"></script>
         <script type="text/javascript" src="${basePath}/js/common/bootstrap/locales/bootstrap-datetimepicker.fr.js" charset="UTF-8"></script>
 		<script >
+            var testEditor;
 			so.init(function(){
-
+				alert(so.id('h2').text())
                 //markdown 文本初始化
-                testEditor = editormd("test-editormd", {
+                testEditor = editormd("content", {
                     width   : "90%",
                     height  : 320,
                     syncScrolling : "single",
-                    path    : "${basePath}/js/common/editormd/lib/"
+                    path    : "${basePath}/js/common/editormd/lib/",
+                    saveHTMLToTextarea : true
                 });
 
-				//初始化全选。
-				so.checkBoxInit('#checkAll','[check=box]');
-				<@shiro.hasPermission name="/article/deleteArticleById.shtml">
-				//全选
-				so.id('deleteAll').on('click',function(){
-					var checkeds = $('[check=box]:checked');
-					if(!checkeds.length){
-						return layer.msg('请选择要删除的选项。',so.default),!0;
-					}
-					var array = [];
-					checkeds.each(function(){
-						array.push(this.value);
-					});
-					return _delete(array);
-				});
-				</@shiro.hasPermission>
+//                testEditor.getMarkdown();       // 获取 Markdown 源码
+//                testEditor.getHTML();           // 获取 Textarea 保存的 HTML 源码
+//                testEditor.getPreviewedHTML();  // 获取预览窗口里的 HTML，在开启 watch 且没有开启 saveHTMLToTextarea 时使用
+
+                //初始化全选。
+                so.checkBoxInit('#checkAll','[check=box]');
+			<@shiro.hasPermission name="/article/deleteArticleById.shtml">
+                //全选
+                so.id('deleteAll').on('click',function(){
+                    var checkeds = $('[check=box]:checked');
+                    if(!checkeds.length){
+                        return layer.msg('请选择要删除的选项。',so.default),!0;
+                    }
+                    var array = [];
+                    checkeds.each(function(){
+                        array.push(this.value);
+                    });
+                    return _delete(array);
+                });
+			</@shiro.hasPermission>
                 $('.form_datetime').datetimepicker({
                     language:  'zh',
                     weekStart: 1,
@@ -59,42 +65,57 @@
                     minuteStep:1,
 
                 });
-			});
+            });
+
 			<@shiro.hasPermission name="/member/deleteUserById.shtml">
-			//根据ID数组，删除
-			function _delete(ids){
-				var index = layer.confirm("确定这"+ ids.length +"个用户？",function(){
-					var load = layer.load();
-					$.post('${basePath}/article/index.shtml',{ids:ids.join(',')},function(result){
-						layer.close(load);
-						if(result && result.status != 200){
-							return layer.msg(result.message,so.default),!0;
-						}else{
-							layer.msg('删除成功');
-							setTimeout(function(){
-								$('#formId').submit();
-							},1000);
-						}
-					},'json');
-					layer.close(index);
-				});
-			}
+            //根据ID数组，删除
+            function _delete(ids){
+                var index = layer.confirm("确定这"+ ids.length +"个用户？",function(){
+                    var load = layer.load();
+                    $.post('${basePath}/article/index.shtml',{ids:ids.join(',')},function(result){
+                        layer.close(load);
+                        if(result && result.status != 200){
+                            return layer.msg(result.message,so.default),!0;
+                        }else{
+                            layer.msg('删除成功');
+                            setTimeout(function(){
+                                $('#formId').submit();
+                            },1000);
+                        }
+                    },'json');
+                    layer.close(index);
+                });
+            }
 			</@shiro.hasPermission>
+
+            function _save(){
+                alert("进来了")
+
+                var id=so.id('id').text();
+				var title=so.id('title').text();
+				var type=so.id('type').text();
+                var content=testEditor.getHTML();           //;
+                $.post('${basePath}/article/saveOrUpdateArticle.shtml',{id:id,title:title,content:content},function (result) {
+                    layer.msg('保存成功');
+                    $('#operateArticle').modal('hide');
+                },'json');
+            }
 
             function _operateArticle(id){
                 if(id==null){
                     $('#operateArticle').modal();
-				}else{
-					$.post('${basePath}/article/selectArticleById/'+id+'.shtml',{articleId:id},function (result) {
-					    console.log(result)
+                }else{
+                    $.post('${basePath}/article/selectArticleById/'+id+'.shtml',{articleId:id},function (result) {
+                        console.log(result)
+                        so.id('id').val(result.id)
                         so.id('title').val(result.title);
                         so.id('content').val(result.content);
-                        so.id('createDate').val(result.createDate);
+                        testEditor.setMarkdown(result.content)
                         $('#operateArticle').modal();
                     });
-				}
+                }
 
-			}
+            }
 
 		</script>
 	</head>
@@ -105,7 +126,7 @@
 			<div class="row">
 				<@_left.article 1/>
 				<div class="col-md-10">
-					<h2>文章列表</h2>
+					<h2 id="h2">文章列表</h2>
 					<hr>
 					<form method="post" action="" id="formId" class="form-inline">
 						<div clss="well">
@@ -171,45 +192,42 @@
                             <h4 class="modal-title" id="operateArticleLabel">添加文章</h4>
                         </div>
                         <div class="modal-body">
-                            <form id="boxRoleForm">
-                                <input type="hidden" name="id" value="">
+                            <form id="articleModalForm">
+                                <input type="hidden" id="id" name="id" value="">
                                 <div class="form-group">
                                     <label for="recipient-name" class="control-label">文章标题:</label>
                                     <input type="text" class="form-control" name="title" id="title" placeholder="请输入文章标题"/>
                                 </div>
                                 <div class="form-group">
-                                    <label for="recipient-name" class="control-label">文章内容:</label>
-                                    <input type="text" class="form-control" id="content" name="content"  placeholder="请编辑文章内容">
-                                </div>
-                                <div class="form-group">
                                     <label for="recipient-name" class="control-label">文章类型:</label>
 									<br>
-                                    <select id="lunchBegins" class="selectpicker" data-live-search="true" data-live-search-style="begins" title="Please select a lunch ...">
+                                    <select id="type" name="type" class="selectpicker" data-live-search="true" data-live-search-style="begins" title="Please select a lunch ...">
                                         <option>Java</option>
                                         <option>Android</option>
                                         <option>Python</option>
                                         <option>C#</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label for="recipient-name" class="control-label">发表日期:</label>
-                                    <div class="input-group date form_datetime "  data-date="" data-date-format="yyyy/mm/dd - HH:ii:ss " data-link-field="dtp_input1" data-link-format="hh:ii:ss">
-                                        <input class="form-control" size="32" type="text" id="createDate" name="createDate" value="" >
-                                        <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
-                                        <span class="input-group-addon"><span class="glyphicon glyphicon-th"></span></span>
-                                    </div>
-                                    <input type="hidden" id="dtp_input1" value="" /><br/>
-                                </div>
                                 <div id="layout" class="form-group">
-                                    <label for="recipient-name" class="control-label">发表日期:</label>
-                                    <div id="test-editormd"></div>
+                                    <label for="recipient-name" class="control-label">文章内容:</label>
+                                    <div id="content" name="content"></div>
                                 </div>
+                                <#--<div class="form-group">-->
+                                    <#--<label for="recipient-name" class="control-label">发表日期:</label>-->
+                                    <#--<div class="input-group date form_datetime "  data-date="" data-date-format="yyyy/mm/dd - HH:ii:ss " data-link-field="dtp_input1" data-link-format="hh:ii:ss">-->
+                                        <#--<input class="form-control" size="32" type="text" id="createDate" name="createDate" value="" >-->
+                                        <#--<span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>-->
+                                        <#--<span class="input-group-addon"><span class="glyphicon glyphicon-th"></span></span>-->
+                                    <#--</div>-->
+                                    <#--<input type="hidden" id="dtp_input1" value="" /><br/>-->
+                                <#--</div>-->
+
 
                             </form>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            <button type="button" onclick="operateArticle();" class="btn btn-primary">Save</button>
+                            <button type="button" onclick="_save()" class="btn btn-primary">Save</button>
                         </div>
                     </div>
                 </div>

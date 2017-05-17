@@ -9,5 +9,9 @@ import com.sojson.permission.bo.URoleBo;
 
 public interface ArticleMapper {
 
+	int insert(Article article);
+
+	int updateByPrimaryKey(Article article);
+
 	Article selectByPrimaryKey(Long id);
 }

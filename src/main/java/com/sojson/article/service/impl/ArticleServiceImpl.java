@@ -30,6 +30,17 @@ public class ArticleServiceImpl extends BaseMybatisDao<ArticleMapper> implements
 
     @Autowired
     private ArticleMapper articleMapper;
+
+    @Override
+    public int insert(Article article) {
+        return articleMapper.insert(article);
+    }
+
+    @Override
+    public int updateByPrimaryKey(Article article) {
+        return articleMapper.updateByPrimaryKey(article);
+    }
+
     @Override
     public Pagination<Article> findByPage(Map<String, Object> resultMap, Integer pageNo, Integer pageSize) {
         return super.findPage(resultMap, pageNo, pageSize);
